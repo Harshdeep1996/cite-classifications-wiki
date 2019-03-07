@@ -11,7 +11,7 @@ from pyspark.sql.functions import explode, col
 INPUT_DATA = 'hdfs:///user/piccardi/enwiki-20181001-pages-articles-multistream.xml.bz2'
 OUTPUT_DATA = 'hdfs:///user/harshdee/citations.parquet'
 
-CITATION_REGEX = '{{ci[\w\s]*[^}]*}}|{{Ci[\w\s]*[^}]*}}|{{h[\w\s]*[^}]*}}|{{H[\w\s]*[^}]*}}'
+CITATION_REGEX = 'ci[\w\s]*[^}]*|Ci[\w\s]*[^}]*|h[\w\s]*[^}]*|H[\w\s]*[^}]*'
 
 sc = SparkContext()
 sqlContext = SQLContext(sc)
