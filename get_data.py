@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ## STEP 1: Get the citations for each article from the wikicode data ##
 
-import re
+import regex
 from bs4 import BeautifulSoup
 from pyspark.sql import Row
 from StringIO import StringIO
@@ -11,7 +11,9 @@ from pyspark.sql.functions import explode, col
 INPUT_DATA = 'hdfs:///user/piccardi/enwiki-20181001-pages-articles-multistream.xml.bz2'
 OUTPUT_DATA = 'hdfs:///user/harshdee/citations.parquet'
 
-CITATION_REGEX = 'ci[\w\s]*[^}]*|Ci[\w\s]*[^}]*|h[\w\s]*[^}]*|H[\w\s]*[^}]*'
+CITATION_REGEX = (
+    '{{ci[\w\s]*[^}]*}}(?:}}(?R)?)?|{{Ci[\w\s]*[^}]*}}(?:}}(?R)?)?|{{h[\w\s]*[^}]*}}(?:}}(?R)?)?|{{H[\w\s]*[^}]*}}(?:}}(?R)?)?'
+)
 
 sc = SparkContext()
 sqlContext = SQLContext(sc)
@@ -39,7 +41,7 @@ def get_citations(page_content):
         if line.startswith('== '):
             current_section = line.strip()
         elif line.startswith('* {{'):
-            refs_in_line = re.findall(CITATION_REGEX, line)
+            refs_in_line = regex.findall(CITATION_REGEX, line)
         else:
             refs_in_line = [r.text for r in BeautifulSoup(line).findAll('ref') if r.text]
 
@@ -47,12 +49,12 @@ def get_citations(page_content):
             continue
 
         for ref in refs_in_line:
-            potential_citations = re.findall(CITATION_REGEX, ref)
-            if not potential_citations:
+            potential_citation = regex.findall(CITATION_REGEX, ref)
+            if not potential_citation:
                 continue
 
             # Append section in which the citation was present
-            for c in potential_citations:
+            for c in potential_citation:
                 citations.setdefault(c, [])
                 if current_section not in citations[c]:
                     citations[c].append(current_section)
