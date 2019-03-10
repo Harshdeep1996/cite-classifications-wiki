@@ -1,31 +1,28 @@
 # -*- coding: utf-8 -*-
-## STEP 1: Get the citations for each article from the wikicode data ##
 
+import re
 import regex
-from bs4 import BeautifulSoup
-from pyspark.sql import Row
 from io import StringIO
-from pyspark import SparkContext, SQLContext
-from pyspark.sql.functions import explode, col
+from bs4 import BeautifulSoup
 
-INPUT_DATA = 'hdfs:///user/piccardi/enwiki-20181001-pages-articles-multistream.xml.bz2'
-OUTPUT_DATA = 'hdfs:///user/harshdee/citations.parquet'
 
 CITATION_REGEX = (
     '{{ci[\w\s]*[^}]*}}(?:}}(?R)?)?|{{Ci[\w\s]*[^}]*}}(?:}}(?R)?)?|'
     '{{h[\w\s]*[^}]*}}(?:}}(?R)?)?|{{H[\w\s]*[^}]*}}(?:}}(?R)?)?'
 )
 
-sc = SparkContext()
-sqlContext = SQLContext(sc)
-sqlContext.setConf('spark.sql.parquet.compression.codec', 'snappy')
+def check_if_balanced(my_string):
+    """
+    Check if particular citation has balanced brackets.
 
-wiki = sqlContext.read.format('com.databricks.spark.xml').options(rowTag='page').load(INPUT_DATA)
-pages = wiki.where('ns = 0').where('redirect is null')
-
-# Get only ID, title, revision text's value which we are interested in
-pages = pages['id', 'title', 'revision.text.#VALUE']
-pages = pages.withColumnRenamed('#VALUE', 'content')
+    :param: citation to be taken in consideration
+    """
+    my_string = re.sub('\w|\s|[^{}]','', my_string)
+    brackets = ['()', '{}', '[]'] 
+    while any(x in my_string for x in brackets): 
+        for br in brackets: 
+            my_string = my_string.replace(br, '') 
+    return not my_string
 
 def get_citations(page_content):
     """
@@ -61,17 +58,3 @@ def get_citations(page_content):
                     citations[c].append(current_section)
 
     return citations.items()
-
-def get_as_row(line):
-    """
-    Get each article's citations with their id and title.
-
-    :line: the wikicode for the article.
-    """
-    return Row(citations=get_citations(line.content), id=line.id, title=line.title)
-
-cite_df = sqlContext.createDataFrame(pages.map(get_as_row))
-cite_df = cite_df.withColumn('citations', explode('citations'))
-cite_df = cite_df.withColumn(
-    'citation', col('citations._1')).withColumn('sections', col('citations._2')).drop('citations')
-cite_df.write.mode('overwrite').parquet(OUTPUT_DATA)
