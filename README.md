@@ -8,6 +8,12 @@
 4. Look-up all references to scientific publications without an identifier to existing services
 5. Export a finalized dataset and release project code publicly.
 
+**To run existing code:**
+
+1. To run the tests: `python -m unittest tests.<name_of_the_test_script>`
+2. All the constant values would be contained in `const.py` and all the helper functions in `helpers.py`
+3. All the other scripts are run using the `spark-submit` command.
+
 ## Previous work and resources
 
 Previous work has considered references to scientific publications with known identifiers such as DOIs and ISBNs, see <https://wikimediafoundation.org/2018/08/20/how-many-wikipedia-references-are-available-to-read/> and <https://www.nature.com/articles/d41586-018-05161-6>.
