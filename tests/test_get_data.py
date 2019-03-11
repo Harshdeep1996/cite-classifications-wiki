@@ -55,6 +55,16 @@ class TestGetData(unittest.TestCase):
 
         self.assertListEqual(original_citations, expected_citations)
 
+    def test_check_citation_matches_in_ref_tag_with_space_in_beginning(self):
+        citation_text = '<ref>{{ cite journal | url=https://test.com | author=Mr.x}}</ref>'
+        original_citations = list(get_citations(citation_text))
+        expected_citations = [
+            ('{{ cite journal | url=https://test.com | author=Mr.x}}',
+            ['Initial Section'])
+        ]
+
+        self.assertListEqual(original_citations, expected_citations)
+
     def test_check_citation_not_matches_ref_tag_multiple_brackets(self):
         citation_text = '<ref>{{Cite news | url=https://test.com | author=Mr.x | ref={{sfnref|harvey|1989}} }}</ref>'
         original_citations = list(get_citations(citation_text))

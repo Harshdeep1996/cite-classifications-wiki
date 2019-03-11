@@ -2,7 +2,7 @@
 ## STEP 1: Get the citations for each article from the wikicode data ##
 
 from pyspark.sql import Row
-from helpers import get_citations, CITATION_REGEX
+from helpers import get_citations
 from pyspark import SparkContext, SQLContext
 from pyspark.sql.functions import explode, col
 
