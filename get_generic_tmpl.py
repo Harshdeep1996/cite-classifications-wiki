@@ -6,10 +6,11 @@ from const import CITATION_TEMPLATES
 from helpers import check_if_balanced
 from pyspark import SparkContext, SQLContext
 from wikiciteparser.parser import parse_citation_template
-from pyspark.sql.functions import split, regexp_replace, trim, lower
+from pyspark.sql.functions import split, regexp_replace, trim, lower, explode, col
 
 
 INPUT_DATA = 'hdfs:///user/harshdee/citations.parquet'
+OUTPUT_DATA = 'hdfs:///user/harshdee/generic_citations.parquet'
 
 sc = SparkContext()
 sqlContext = SQLContext(sc)
@@ -48,4 +49,4 @@ def get_as_row(line):
 )
 
 generic_citations = sqlContext.createDataFrame(citations.map(get_as_row))
-
+generic_citations.write.mode('overwrite').parquet(OUTPUT_DATA)
