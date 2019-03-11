@@ -3,6 +3,7 @@
 import mwparserfromhell
 from pyspark.sql import Row
 from const import CITATION_TEMPLATES
+from helpers import check_if_balanced
 from pyspark import SparkContext, SQLContext
 from wikiciteparser.parser import parse_citation_template
 from pyspark.sql.functions import split, regexp_replace, trim, lower
@@ -28,8 +29,10 @@ def get_generic_template(citation):
 
     :param: citation according to a particular format as described in const.py
     """
+    if not check_if_balanced(citation):
+        citation = citation + '}}'
     wikicode_tpl = mwparserfromhell.parse(citation)
-    template = ''.join(wikicode_tpl.filter_templates())
+    template = wikicode_tpl.filter_templates()[0]
     return parse_citation_template(template)
 
 
