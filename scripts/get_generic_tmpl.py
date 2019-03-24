@@ -30,11 +30,18 @@ def get_generic_template(citation):
 
     :param: citation according to a particular format as described in const.py
     """
+    not_parseable = {'Title': 'Citation generic template not possible'}
     if not check_if_balanced(citation):
         citation = citation + '}}'
     wikicode_tpl = mwparserfromhell.parse(citation)
-    template = wikicode_tpl.filter_templates()[0]
-    return parse_citation_template(template)
+
+    try:
+        template = wikicode_tpl.filter_templates()[0]
+    except IndexError:
+        return not_parseable
+    
+    parsed_result = parse_citation_template(template)
+    return parsed_result if parsed_result is not None else not_parseable
 
 
 def get_as_row(line):
@@ -44,9 +51,9 @@ def get_as_row(line):
     :line: a row from the dataframe generated from get_data.py.
     """
     return Row(
-    citation=get_generic_template(line.citation), id=line.id,
-    title=line.title, sections=line.sections, type_of_citation=line.type_of_citation
-)
+    	citation=get_generic_template(line.citation), id=line.id,
+    	title=line.title, sections=line.sections, type_of_citation=line.type_of_citation
+    )
 
 generic_citations = sqlContext.createDataFrame(citations.map(get_as_row))
 generic_citations.write.mode('overwrite').parquet(OUTPUT_DATA)
