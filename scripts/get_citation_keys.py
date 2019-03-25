@@ -58,3 +58,10 @@ def get_as_row(line):
 generic_citations = sqlContext.createDataFrame(generic_citations.map(get_as_row), samplingRatio=0.2)
 generic_citations = generic_citations.withColumnRenamed('Title', 'title_of_citation').withColumnRenamed('title', 'title_of_page')
 generic_citations.write.mode('overwrite').parquet(OUTPUT_DATA)
+
+# Code to get CSV file for some particular column which only have ID List
+# id_list_exists = generic_citations.where(col('ID_list').isNotNull())
+# id_list_exists.select(
+#     'id', 'title_of_page',
+#     'title_of_citation', 'ID_list', 'Authors'
+# ).write.format('com.databricks.spark.csv').save('citations_ids.csv')
