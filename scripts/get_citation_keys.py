@@ -1,7 +1,7 @@
 from pyspark import SparkContext, SQLContext
 from pyspark.sql import Row
-from pyspark.sql.types import ArrayType, StringType, StructType, StructField
-from pyspark.sql.functions import udf, lit
+from pyspark.sql.types import ArrayType, StringType
+from pyspark.sql.functions import udf, lit, col
 
 OUTPUT_DATA = 'hdfs:///user/harshdee/citations_separated.parquet'
 
@@ -56,4 +56,5 @@ def get_as_row(line):
     )
 
 generic_citations = sqlContext.createDataFrame(generic_citations.map(get_as_row), samplingRatio=0.2)
+generic_citations = generic_citations.withColumnRenamed('Title', 'title_of_citation').withColumnRenamed('title', 'title_of_page')
 generic_citations.write.mode('overwrite').parquet(OUTPUT_DATA)
