@@ -51,8 +51,8 @@ def get_as_row(line):
     :line: a row from the dataframe generated from get_data.py.
     """
     return Row(
-    	citation=get_generic_template(line.citation), id=line.id,
-    	title=line.title, sections=line.sections, type_of_citation=line.type_of_citation
+        citation=get_generic_template(line.citation), id=line.id,
+        title=line.title, sections=line.sections, type_of_citation=line.type_of_citation
     )
 
 generic_citations = sqlContext.createDataFrame(citations.map(get_as_row))
