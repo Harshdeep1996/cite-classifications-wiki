@@ -2,7 +2,7 @@
 
 import re
 import regex
-from io import StringIO
+import mwparserfromhell
 from bs4 import BeautifulSoup
 
 
@@ -30,31 +30,14 @@ def get_citations(page_content):
 
     :param: page_content: <text></text> part of the wikicode xml.
     """
-    citations = dict()
-    refs_in_line = []
-    buf = StringIO(page_content)
-    current_section = 'Initial Section'
 
-    for line in buf.readlines():
-        if line.startswith('== '):
-            current_section = line.strip()
-        elif line.startswith('* {{'):
-            refs_in_line = regex.findall(CITATION_REGEX, line)
-        else:
-            refs_in_line = [r.text for r in BeautifulSoup(repr(line)).findAll('ref') if r.text]
+    wikicode_tpl = mwparserfromhell.parse(page_content)
+    templates = wikicode_tpl.filter_templates()
 
-        if not refs_in_line:
-            continue
+    citations = []
+    for tpl in templates:
+        c_exists = regex.findall(CITATION_REGEX, str(tpl))
+        if c_exists:
+            citations.append(c_exists[0])
 
-        for ref in refs_in_line:
-            potential_citation = regex.findall(CITATION_REGEX, ref)
-            if not potential_citation:
-                continue
-
-            # Append section in which the citation was present
-            for c in potential_citation:
-                citations.setdefault(c, [])
-                if current_section not in citations[c]:
-                    citations[c].append(current_section)
-
-    return citations.items()
+    return citations

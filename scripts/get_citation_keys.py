@@ -48,10 +48,9 @@ def get_as_row(line):
     (chapter, p_name, format_, degree, title, url, series, authors, id_list,
     encyclopedia, periodical, p_place, date, edition, season, pages, chron) = get_value_from_citation(line.citation)
     return Row(
-        citation=line.citation, id=line.id,
-        title=line.title, sections=line.sections, type_of_citation=line.type_of_citation,
-        Chapter=chapter, PublisherName=p_name, Format=format_, Degree=degree, Title=title, URL=url,
-        Series=series, Authors=authors, ID_list=id_list, Encyclopedia=encyclopedia, Periodical=periodical,
+        citation=line.citation, id=line.id, title=line.title, type_of_citation=line.type_of_citation,
+	Chapter=chapter, PublisherName=p_name, Format=format_, Degree=degree, Title=title, URL=url,
+	Series=series, Authors=authors, ID_list=id_list, Encyclopedia=encyclopedia, Periodical=periodical,
 	PublicationPlace=p_place, Date=date, Edition=edition, Season=season, Pages=pages, Chron=chron
     )
 

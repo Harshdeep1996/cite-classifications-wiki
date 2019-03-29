@@ -17,7 +17,7 @@ sqlContext = SQLContext(sc)
 
 citations = sqlContext.read.parquet(INPUT_DATA)
 
-split_col = split(citations['citation'], '\|') 
+split_col = split(citations['citations'], '\|') 
 citations = citations.withColumn('type_of_citation', lower(trim(split_col.getItem(0))))
 citations = citations.withColumn('type_of_citation', regexp_replace('type_of_citation', '\{\{', ''))
 
@@ -33,14 +33,16 @@ def get_generic_template(citation):
     not_parseable = {'Title': 'Citation generic template not possible'}
     if not check_if_balanced(citation):
         citation = citation + '}}'
-    wikicode_tpl = mwparserfromhell.parse(citation)
-
+    
+    # Convert the str into mwparser object
+    wikicode = mwparserfromhell.parse(citation)
     try:
-        template = wikicode_tpl.filter_templates()[0]
+        template = wikicode.filter_templates()[0]
     except IndexError:
         return not_parseable
     
     parsed_result = parse_citation_template(template)
+    # In case the mwparser is not able to parse the citation template
     return parsed_result if parsed_result is not None else not_parseable
 
 
@@ -51,8 +53,8 @@ def get_as_row(line):
     :line: a row from the dataframe generated from get_data.py.
     """
     return Row(
-        citation=get_generic_template(line.citation), id=line.id,
-        title=line.title, sections=line.sections, type_of_citation=line.type_of_citation
+        citation=get_generic_template(line.citations), id=line.id,
+        title=line.title, type_of_citation=line.type_of_citation
     )
 
 generic_citations = sqlContext.createDataFrame(citations.map(get_as_row))

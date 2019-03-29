@@ -31,6 +31,4 @@ def get_as_row(line):
 
 cite_df = sqlContext.createDataFrame(pages.map(get_as_row))
 cite_df = cite_df.withColumn('citations', explode('citations'))
-cite_df = cite_df.withColumn(
-    'citation', col('citations._1')).withColumn('sections', col('citations._2')).drop('citations')
 cite_df.write.mode('overwrite').parquet(OUTPUT_DATA)
