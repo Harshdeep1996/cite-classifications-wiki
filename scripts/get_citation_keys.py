@@ -49,9 +49,10 @@ def get_as_row(line):
     encyclopedia, periodical, p_place, date, edition, season, pages, chron) = get_value_from_citation(line.citation)
     return Row(
         citation=line.citation, id=line.id, title=line.title, type_of_citation=line.type_of_citation,
-	Chapter=chapter, PublisherName=p_name, Format=format_, Degree=degree, Title=title, URL=url,
-	Series=series, Authors=authors, ID_list=id_list, Encyclopedia=encyclopedia, Periodical=periodical,
-	PublicationPlace=p_place, Date=date, Edition=edition, Season=season, Pages=pages, Chron=chron
+	r_id=line.r_id, r_parentid=line.r_parentid, Chapter=chapter, PublisherName=p_name, Format=format_,
+	Degree=degree, Title=title, URL=url, Series=series, Authors=authors, ID_list=id_list,
+	Encyclopedia=encyclopedia, Periodical=periodical, PublicationPlace=p_place, Date=date, Edition=edition,
+	Season=season, Pages=pages, Chron=chron
     )
 
 generic_citations = sqlContext.createDataFrame(generic_citations.map(get_as_row), samplingRatio=0.2)

@@ -18,8 +18,8 @@ wiki = sqlContext.read.format('com.databricks.spark.xml').options(rowTag='page')
 pages = wiki.where('ns = 0').where('redirect is null')
 
 # Get only ID, title, revision text's value which we are interested in
-pages = pages['id', 'title', 'revision.text.#VALUE']
-pages = pages.withColumnRenamed('#VALUE', 'content')
+pages = pages['id', 'title', 'revision.text.#VALUE', 'revision.id', 'revision.parentid']
+pages = pages.toDF('id', 'title', 'content', 'r_id', 'r_parentid')
 
 def get_as_row(line):
     """
@@ -27,7 +27,10 @@ def get_as_row(line):
 
     :line: the wikicode for the article.
     """
-    return Row(citations=get_citations(line.content), id=line.id, title=line.title)
+    return Row(
+        citations=get_citations(line.content), id=line.id,
+        title=line.title, r_id=line.r_id, r_parentid=line.r_parentid
+    )
 
 cite_df = sqlContext.createDataFrame(pages.map(get_as_row))
 cite_df = cite_df.withColumn('citations', explode('citations'))
