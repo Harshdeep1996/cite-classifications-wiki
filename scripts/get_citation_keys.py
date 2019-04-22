@@ -62,6 +62,5 @@ generic_citations.write.mode('overwrite').parquet(OUTPUT_DATA)
 # Code to get CSV file for some particular column which only have ID List
 # id_list_exists = generic_citations.where(col('ID_list').isNotNull())
 # id_list_exists.select(
-#     'id', 'Title',
-#     'title_of_citation', 'ID_list', 'Authors'
+#     'id', 'Title', 'ID_list', 'Authors'
 # ).write.format('com.databricks.spark.csv').save('citations_ids.csv')
