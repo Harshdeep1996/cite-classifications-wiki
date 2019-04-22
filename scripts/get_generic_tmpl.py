@@ -17,10 +17,6 @@ sqlContext = SQLContext(sc)
 
 citations = sqlContext.read.parquet(INPUT_DATA)
 
-split_col = split(citations['citations'], '\|') 
-citations = citations.withColumn('type_of_citation', lower(trim(split_col.getItem(0))))
-citations = citations.withColumn('type_of_citation', regexp_replace('type_of_citation', '\{\{', ''))
-
 citations = citations.filter(citations['type_of_citation'].isin(CITATION_TEMPLATES))
 
 

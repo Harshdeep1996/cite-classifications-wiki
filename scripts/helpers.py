@@ -6,10 +6,10 @@ import mwparserfromhell
 from bs4 import BeautifulSoup
 
 
-CITATION_REGEX = (
-    '{{\s?ci[\w\s]*[^}]*}}(?:}}(?R)?)?|{{\s?Ci[\w\s]*[^}]*}}(?:}}(?R)?)?|'
-    '{{\s?h[\w\s]*[^}]*}}(?:}}(?R)?)?|{{\s?H[\w\s]*[^}]*}}(?:}}(?R)?)?'
-)
+# CITATION_REGEX = (
+#     '{{\s?ci[\w\s]*[^}]*}}(?:}}(?R)?)?|{{\s?Ci[\w\s]*[^}]*}}(?:}}(?R)?)?|'
+#     '{{\s?h[\w\s]*[^}]*}}(?:}}(?R)?)?|{{\s?H[\w\s]*[^}]*}}(?:}}(?R)?)?'
+# )
 
 def check_if_balanced(my_string):
     """
@@ -36,8 +36,8 @@ def get_citations(page_content):
 
     citations = []
     for tpl in templates:
-        c_exists = regex.findall(CITATION_REGEX, str(tpl))
-        if c_exists:
-            citations.append(c_exists[0])
+        # c_exists = regex.findall(CITATION_REGEX, repr(tpl))
+        if tpl.startswith('{{'):
+            citations.append(repr(tpl))
 
     return citations

@@ -1,5 +1,7 @@
 # Large-scale automatic classification of references in Wikipedia.
 
+The link to the documentation is: [**DOCUMENTATION**](https://github.com/Harshdeep1996/cite-classifications-wiki/wiki)
+
 **Goals:**
 
 1. Extract all references from Wikipedia English. This task is non-trivial as references use a variety of templates. Resources exist to do this step.

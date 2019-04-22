@@ -45,23 +45,23 @@ def get_as_row(line):
 
     :line: a row from the dataframe generated from get_data.py.
     """
-    (chapter, p_name, format_, degree, title, url, series, authors, id_list,
-    encyclopedia, periodical, p_place, date, edition, season, pages, chron) = get_value_from_citation(line.citation)
+    (city, title, issue, p_name, degree, format_, volume, authors,
+    date, pages, chron, chapter, url, p_place, id_list, encyclopedia,
+    series_number, access_date, series, edition, periodical, title_type) = get_value_from_citation(line.citation)
     return Row(
-        citation=line.citation, id=line.id, title=line.title, type_of_citation=line.type_of_citation,
-	r_id=line.r_id, r_parentid=line.r_parentid, Chapter=chapter, PublisherName=p_name, Format=format_,
-	Degree=degree, Title=title, URL=url, Series=series, Authors=authors, ID_list=id_list,
-	Encyclopedia=encyclopedia, Periodical=periodical, PublicationPlace=p_place, Date=date, Edition=edition,
-	Season=season, Pages=pages, Chron=chron
+        citation=line.citation, id=line.id, type_of_citation=line.type_of_citation,
+        r_id=line.r_id, r_parentid=line.r_parentid, Chapter=chapter, PublisherName=p_name, Format=format_,
+        Degree=degree, Title=title, URL=url, Series=series, Authors=authors, ID_list=id_list, Encyclopedia=encyclopedia,
+        Periodical=periodical, PublicationPlace=p_place, Date=date, Edition=edition, Pages=pages, Chron=chron, City=city,
+        Issue=issue, Volume=volume, SeriesNumber=series_number, AccessDate=access_date, TitleType=title_type
     )
 
 generic_citations = sqlContext.createDataFrame(generic_citations.map(get_as_row), samplingRatio=0.2)
-generic_citations = generic_citations.withColumnRenamed('Title', 'title_of_citation').withColumnRenamed('title', 'title_of_page')
 generic_citations.write.mode('overwrite').parquet(OUTPUT_DATA)
 
 # Code to get CSV file for some particular column which only have ID List
 # id_list_exists = generic_citations.where(col('ID_list').isNotNull())
 # id_list_exists.select(
-#     'id', 'title_of_page',
+#     'id', 'Title',
 #     'title_of_citation', 'ID_list', 'Authors'
 # ).write.format('com.databricks.spark.csv').save('citations_ids.csv')

@@ -4,7 +4,7 @@
 from pyspark.sql import Row
 from helpers import get_citations
 from pyspark import SparkContext, SQLContext
-from pyspark.sql.functions import explode, col
+from pyspark.sql.functions import explode, col, split, trim, lower, regexp_replace
 
 
 INPUT_DATA = 'hdfs:///user/piccardi/enwiki-20181001-pages-articles-multistream.xml.bz2'
@@ -34,4 +34,7 @@ def get_as_row(line):
 
 cite_df = sqlContext.createDataFrame(pages.map(get_as_row))
 cite_df = cite_df.withColumn('citations', explode('citations'))
+split_col = split(cite_df['citations'], '\|')
+cite_df = cite_df.withColumn('type_of_citation', lower(trim(split_col.getItem(0))))
+cite_df = cite_df.withColumn('type_of_citation', regexp_replace('type_of_citation', '\{\{', ''))
 cite_df.write.mode('overwrite').parquet(OUTPUT_DATA)
