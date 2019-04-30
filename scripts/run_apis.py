@@ -24,7 +24,7 @@ def run_google_book_get_id(query, intitle=None, inauthor=None, inpublisher=None)
         url_to_be_queried = '{}+inpublisher:{}'.format(url_to_be_queried, inpublisher)
 
     r = requests.get(url_to_be_queried)
-    return r.json()
+    return r
 
 
 def run_google_book_get_info(isbn=None, oclc=None):
@@ -45,7 +45,7 @@ def run_google_book_get_info(isbn=None, oclc=None):
         url_to_be_queried = '{}q=oclc:{}'.format(GOOGLE_BOOKS_PREFIX, isbn)
 
     r = requests.get(url_to_be_queried)
-    return r.json()
+    return r
 
 
 # The CrossRef APIs
@@ -69,13 +69,13 @@ def run_cross_ref_get_id(title=None, author=None):
         url_to_be_queried = '{}{}{}'.format(url_to_be_queried, title_prefix, intitle)
 
     r = requests.get(url_to_be_queried)
-    return r.json()
+    return r
 
 def run_crossref_get_info(doi):
     """
     Run the Crossref API using a DOI to get information about that document.
 
-    :param: doi: the doi ID of that document..
+    :param: doi: the doi ID of that document.
     """
     if not doi:
         raise ValueError('Please mention the DOI of the document')
@@ -83,4 +83,4 @@ def run_crossref_get_info(doi):
     url_to_be_queried = 'https://api.crossref.org/works/{}'.format(doi)
 
     r = requests.get(url_to_be_queried)
-    return r.json()
+    return r
