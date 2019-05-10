@@ -130,6 +130,7 @@ class Wikicode(StringMixIn):
             word for word in all_words_near_ref if len(word) > 1 or word in list('?@-.,!')
         ]
         total_neigboring_words = 20
+        total_words_ = len(all_words_near_ref)
 
         section = 'Initial Section'
         for i, node in inodes:
@@ -150,7 +151,7 @@ class Wikicode(StringMixIn):
                 for index in index_of_citations:
                     tags[index] = 'WIKICODE'
 
-                yield (i, node, section, neighboring_before_words, tags)
+                yield (i, node, section, neighboring_before_words, tags, ref_index, total_words_)
 
     def _get_all_words_near_ref(self, temp_inodes, match, forcetype):
         """Returns a list which contains the references and neighboring words"""
@@ -600,8 +601,8 @@ class Wikicode(StringMixIn):
         """
         gen = self._indexed_ifilter(recursive, matches, flags, forcetype)
         return (
-            (node, section, neighboring_words, tags)
-            for i, node, section, neighboring_words, tags in gen
+            (node, section, neighboring_words, tags, ref_index, total_words_)
+            for i, node, section, neighboring_words, tags, ref_index, total_words_ in gen
         )
 
     def filter(self, *args, **kwargs):

@@ -55,10 +55,12 @@ from wikiciteparser.parser import parse_citation_template
 wikicode = mwparserfromhell.parse(mwtext)
 templates = wikicode.filter_templates()
 
-for tpl, section, neighboring, tags in templates:
+for tpl, section, neighboring, tags, ref_index, total_words_ in templates:
     parsed = parse_citation_template(tpl)
     if parsed:
         print(parsed)
         print('\nSection: {}'.format(section))
         print('\nNeighboring: {}'.format(neighboring))
         print('\nTags: {}'.format(tags))
+        print('\nRef Index: {}'.format(ref_index))
+        print('\nTotal Words: {}'.format(total_words_))
