@@ -2,7 +2,7 @@ import requests
 
 
 GOOGLE_BOOKS_PREFIX = 'https://www.googleapis.com/books/v1/volumes?'
-CROSSREF_WORKS_PREFIX = 'https://api.crossref.org/works?'
+CROSSREF_WORKS_PREFIX = 'https://api.crossref.org/works'
 
 # The Google BOOK APIs - https://developers.google.com/books/docs/v1/using
 def run_google_book_get_id(query, intitle=None, inauthor=None, inpublisher=None):
@@ -61,7 +61,7 @@ def run_cross_ref_get_id(title=None, author=None):
     if all(v is None for v in {title, author}):
         raise ValueError('Please give some information about the book - author, title for Crossref')
 
-    url_to_be_queried = '{}'.format(CROSSREF_WORKS_PREFIX)
+    url_to_be_queried = '{}?'.format(CROSSREF_WORKS_PREFIX)
     if author:
         url_to_be_queried = '{}query.author={}'.format(url_to_be_queried, inauthor)
     if title:
@@ -71,16 +71,21 @@ def run_cross_ref_get_id(title=None, author=None):
     r = requests.get(url_to_be_queried)
     return r
 
-def run_crossref_get_info(doi):
+def run_crossref_get_info(doi=None, isbn=None):
     """
     Run the Crossref API using a DOI to get information about that document.
 
     :param: doi: the doi ID of that document.
+    :param: isbn: the ISBN ID of the document.
     """
-    if not doi:
-        raise ValueError('Please mention the DOI of the document')
+    if not doi and not isbn:
+        raise ValueError('Please mention the identifier of the document')
 
-    url_to_be_queried = 'https://api.crossref.org/works/{}'.format(doi)
+    url_to_be_queried = '{}'.format(CROSSREF_WORKS_PREFIX)
+    if doi:
+        url_to_be_queried = '{}/{}'.format(url_to_be_queried, doi)
+    else:
+        url_to_be_queried = '{}?filter=isbn:{}'.format(url_to_be_queried, isbn)
 
     r = requests.get(url_to_be_queried)
     return r
