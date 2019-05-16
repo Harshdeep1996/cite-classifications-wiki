@@ -3,7 +3,7 @@
 import re
 import regex
 import mwparserfromhell
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 
 
 # CITATION_REGEX = (
@@ -30,14 +30,15 @@ def get_citations(page_content):
 
     :param: page_content: <text></text> part of the wikicode xml.
     """
+    wikicode = mwparserfromhell.parse(page_content)
+    templates = wikicode.filter_templates()
+    section_features = wikicode.get_node_sections_feature()
+    all_words = wikicode.get_all_tokens_feature()
 
-    wikicode_tpl = mwparserfromhell.parse(page_content)
-    templates = wikicode_tpl.filter_templates()
-
-    citations = []
+    results = []
     for tpl in templates:
-        # c_exists = regex.findall(CITATION_REGEX, repr(tpl))
         if tpl.startswith('{{'):
-            citations.append(repr(tpl))
+            sections = section_features[tpl]
+            results.append((repr(tpl), sections, all_words))
 
-    return citations
+    return results

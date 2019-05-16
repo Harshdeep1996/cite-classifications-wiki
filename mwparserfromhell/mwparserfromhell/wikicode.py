@@ -57,6 +57,8 @@ class Wikicode(StringMixIn):
     def __init__(self, nodes):
         super(Wikicode, self).__init__()
         self._nodes = nodes
+        self._node_sections = dict()
+        self.all_tokens = None
 
     def __unicode__(self):
         return "".join([str(node) for node in self.nodes])
@@ -94,8 +96,16 @@ class Wikicode(StringMixIn):
             return lambda obj: re.search(matches, str(obj), flags)
         return lambda obj: True
 
+    def get_node_sections_feature(self):
+        """Getter method to get the section feature for each node"""
+        return self._node_sections
+
+    def get_all_tokens_feature(self):
+        """Getter method to get the all words for each page"""
+        return self.all_tokens
+
     def _indexed_ifilter(self, recursive=True, matches=None, flags=FLAGS,
-                         forcetype=None):
+                         forcetype=None, get_features=False):
         """Iterate over nodes and their corresponding indices in the node list.
 
         The arguments are interpreted as for :meth:`ifilter`. For each tuple
@@ -113,45 +123,24 @@ class Wikicode(StringMixIn):
         else:
             inodes = enumerate(self.nodes)
 
-        # Make the chain into list and make a set of words which are neighboring for a particular citation
-        temp_inodes = None
         if recursive:
             temp_inodes = chain(*(getter(i, n) for i, n in enumerate(self.nodes)))
-
-        all_words_near_ref = self._get_all_words_near_ref(temp_inodes, match, forcetype)
-        ## Some preprocessing of removing punctuation before we output the words ##
-        # Remove all punctuation to replace by 'no' Character
-        all_words_near_ref = [
-            PUNC_REGEX.sub('', str(word)) if not word.startswith('{{') else word 
-            for word in all_words_near_ref
-        ]
-        # and then remove the strings which are not None and have length greater than one
-        all_words_near_ref = [
-            word for word in all_words_near_ref if len(word) > 1 or word in list('?@-.,!')
-        ]
-        total_neigboring_words = 20
-        total_words_ = len(all_words_near_ref)
+            if temp_inodes:
+                self.all_tokens = self._get_all_words_near_ref(temp_inodes, match, forcetype)
 
         section = 'Initial Section'
+
         for i, node in inodes:
             if node.startswith('== '):
-                section = node
+                section = node.replace('==', '').strip()
+
             if (not forcetype or isinstance(node, forcetype)) and match(node):
-                ref_index = all_words_near_ref.index(node)
-                if ref_index < total_neigboring_words:
-                    neighboring_before_words = all_words_near_ref[:ref_index]
+                if not recursive:
+                    yield (i, node)
                 else:
-                    neighboring_before_words = all_words_near_ref[ref_index - total_neigboring_words:ref_index]
-
-                # Get part of speech tags for the neigbhoring words for the citation
-                tags = [t for _, t in pos_tag(neighboring_before_words)]
-                # Get all tags which 'might' be wikipedia citation
-                index_of_citations = [i for i, word in enumerate(neighboring_before_words) if word.startswith('{{')]
-                # Change tags of citations to 'Wikicode' -  so that it can be treated as a feature
-                for index in index_of_citations:
-                    tags[index] = 'WIKICODE'
-
-                yield (i, node, section, neighboring_before_words, tags, ref_index, total_words_)
+                    self._node_sections.setdefault(node, [])
+                    self._node_sections[node].append(section)
+                    yield (i, node)
 
     def _get_all_words_near_ref(self, temp_inodes, match, forcetype):
         """Returns a list which contains the references and neighboring words"""
@@ -600,10 +589,11 @@ class Wikicode(StringMixIn):
         *flags*.
         """
         gen = self._indexed_ifilter(recursive, matches, flags, forcetype)
-        return (
-            (node, section, neighboring_words, tags, ref_index, total_words_)
-            for i, node, section, neighboring_words, tags, ref_index, total_words_ in gen
-        )
+        # return (
+        #     (node, section, neighboring_words, tags, ref_index, total_words_)
+        #     for i, node, section, neighboring_words, tags, ref_index, total_words_ in gen
+        # )
+        return (node for i, node in gen)
 
     def filter(self, *args, **kwargs):
         """Return a list of nodes within our list matching certain conditions.
