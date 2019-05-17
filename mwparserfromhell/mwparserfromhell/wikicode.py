@@ -39,9 +39,6 @@ __all__ = ["Wikicode"]
 
 FLAGS = re.IGNORECASE | re.DOTALL | re.UNICODE
 
-PUNCTUATION_TO_BE_REMOVED = '"#$%\'()*+/:;<=>?@[\\]^_`{|}~'
-PUNC_REGEX = re.compile(r'[{}]+'.format(re.escape(PUNCTUATION_TO_BE_REMOVED)))
-
 class Wikicode(StringMixIn):
     """A ``Wikicode`` is a container for nodes that operates like a string.
 

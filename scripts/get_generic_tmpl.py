@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+## STEP 2: Get the citations mapped to the same generic template ##
 
 import mwparserfromhell
 from pyspark.sql import Row
@@ -6,7 +7,7 @@ from const import CITATION_TEMPLATES
 from helpers import check_if_balanced
 from pyspark import SparkContext, SQLContext
 from wikiciteparser.parser import parse_citation_template
-from pyspark.sql.functions import split, regexp_replace, trim, lower, explode, col
+from pyspark.sql.functions import split, regexp_replace, trim, lower, explode, col, expr
 
 
 INPUT_DATA = 'hdfs:///user/harshdee/citations.parquet'
@@ -14,9 +15,9 @@ OUTPUT_DATA = 'hdfs:///user/harshdee/generic_citations.parquet'
 
 sc = SparkContext()
 sqlContext = SQLContext(sc)
-
 citations = sqlContext.read.parquet(INPUT_DATA)
 
+citations = citations.withColumn('type_of_citation', expr('substring(type_of_citation, 3, length(type_of_citation))'))
 citations = citations.filter(citations['type_of_citation'].isin(CITATION_TEMPLATES))
 
 
@@ -29,14 +30,12 @@ def get_generic_template(citation):
     not_parseable = {'Title': 'Citation generic template not possible'}
     if not check_if_balanced(citation):
         citation = citation + '}}'
-    
     # Convert the str into mwparser object
     wikicode = mwparserfromhell.parse(citation)
     try:
         template = wikicode.filter_templates()[0]
     except IndexError:
         return not_parseable
-    
     parsed_result = parse_citation_template(template)
     # In case the mwparser is not able to parse the citation template
     return parsed_result if parsed_result is not None else not_parseable
@@ -50,7 +49,7 @@ def get_as_row(line):
     """
     return Row(
         citation=get_generic_template(line.citations), id=line.id,
-        title=line.title, type_of_citation=line.type_of_citation,
+        page_title=line.title, type_of_citation=line.type_of_citation,
         r_id=line.r_id, r_parentid=line.r_parentid
     )
 
