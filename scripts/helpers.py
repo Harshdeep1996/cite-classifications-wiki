@@ -26,25 +26,31 @@ def get_citations(page_content):
     """
     wikicode = mwparserfromhell.parse(page_content)
     templates = wikicode.filter_templates()
+    section_features = wikicode.get_node_sections_feature()
 
     citations = []
+    sections = []
     for tpl in templates:
         # c_exists = regex.findall(CITATION_REGEX, repr(tpl))
         if tpl.startswith('{{'):
             citations.append(repr(tpl))
+            sections.append(', '.join(section_features[tpl]))
 
-    return citations
+    return zip(citations, sections)
 
-def get_citation_sections(page_content):
+def get_features(page_content):
     wikicode = mwparserfromhell.parse(page_content)
     templates = wikicode.filter_templates()
     section_features = wikicode.get_node_sections_feature()
+
+    all_words = wikicode.get_all_tokens_feature()
+    all_words = [repr(w) for w in all_words]
 
     results = []
     for tpl in templates:
         if tpl.startswith('{{'):
             sections = section_features[tpl]
-            results.append([repr(tpl), sections])
+            results.append([repr(tpl), sections, all_words])
 
     return results
 
