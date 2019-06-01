@@ -60,14 +60,12 @@ def run_cross_ref_get_id(title=None, author=None):
     """
     if all(v is None for v in {title, author}):
         raise ValueError('Please give some information about the book - author, title for Crossref')
-
-    url_to_be_queried = '{}?'.format(CROSSREF_WORKS_PREFIX)
+    url_to_be_queried = '{}?rows=1'.format(CROSSREF_WORKS_PREFIX)
     if author:
-        url_to_be_queried = '{}query.author={}'.format(url_to_be_queried, inauthor)
+        url_to_be_queried = '{}&query.author={}'.format(url_to_be_queried, author)
     if title:
-        title_prefix = 'query.title=' if not author else '&query.title='
-        url_to_be_queried = '{}{}{}'.format(url_to_be_queried, title_prefix, intitle)
-
+        title_prefix = '&query.title='
+        url_to_be_queried = '{}{}{}'.format(url_to_be_queried, title_prefix, title)
     r = requests.get(url_to_be_queried)
     return r
 

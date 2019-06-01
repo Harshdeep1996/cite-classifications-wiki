@@ -12,11 +12,12 @@ OUTPUT_DATA = 'hdfs:///user/harshdee/citations_separated.parquet'
 
 sc = SparkContext()
 sqlContext = SQLContext(sc)
+sqlContext.setConf('spark.sql.parquet.compression.codec', 'snappy')
 generic_citations = sqlContext.read.parquet(INPUT_DATA)
 
 udf_get_keys = udf(lambda x: x.keys() if x.keys() is not None else [], ArrayType(StringType()))
 # Get all the keys in the citation dict and remove that additional column from the additional DF
-generic_citations = generic_citations.withColumn('citation_keys', udf_get_keys(generic_citations.citation))
+generic_citations = generic_citations.withColumn('citation_keys', udf_get_keys(generic_citations.citation_dict))
 generic_citations.registerTempTable('generic_citations')
 
 citation_keys = sqlContext.sql('select citation_keys as keys from generic_citations')
@@ -51,13 +52,13 @@ def get_as_row(line):
     """
     (city, title, issue, p_name, degree, format_, volume, authors,
     date, pages, chron, chapter, url, p_place, id_list, encyclopedia,
-    series_number, access_date, series, edition, periodical, title_type) = get_value_from_citation(line.citation)
+    series_number, access_date, series, edition, periodical, title_type) = get_value_from_citation(line.citation_dict)
     return Row(
-        citation=line.citation, id=line.id, type_of_citation=line.type_of_citation, page_title=line.page_title,
-        r_id=line.r_id, r_parentid=line.r_parentid, Chapter=chapter, PublisherName=p_name, Format=format_,
-        Degree=degree, Title=title, URL=url, Series=series, Authors=authors, ID_list=id_list, Encyclopedia=encyclopedia,
+        citations=line.citations, id=line.id, type_of_citation=line.type_of_citation, page_title=line.page_title,
+        r_id=line.r_id, r_parentid=line.r_parentid, Chapter=chapter, PublisherName=p_name, Format=format_, Degree=degree,
+        Title=title, URL=url, Series=series, Authors=authors, ID_list=id_list, Encyclopedia=encyclopedia,
         Periodical=periodical, PublicationPlace=p_place, Date=date, Edition=edition, Pages=pages, Chron=chron, City=city,
-        Issue=issue, Volume=volume, SeriesNumber=series_number, AccessDate=access_date, TitleType=title_type
+        Issue=issue, Volume=volume, SeriesNumber=series_number, AccessDate=access_date, TitleType=title_type, sections=line.sections
     )
 
 # Sampling ratio is added to make sure the structure of the data is same since for some
@@ -67,6 +68,6 @@ generic_citations.write.mode('overwrite').parquet(OUTPUT_DATA)
 
 ## Code to get CSV file for some particular column which only have ID List ##
 # id_list_exists = generic_citations.where(col('ID_list').isNotNull())
-# id_list_exists.select(
-#     'id', 'page_title', 'citation', 'ID_list', 'Authors', 'Title', 'type_of_citation'
-# ).write.format('com.databricks.spark.csv').save('citations_ids.csv')
+id_list_exists.select(
+    'id', 'page_title', 'citations', 'ID_list', 'Authors', 'Title', 'type_of_citation', 'PublisherName', 'sections'
+).write.mode('overwrite').format('com.databricks.spark.csv').save('citations_ids.csv')

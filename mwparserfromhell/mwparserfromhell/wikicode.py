@@ -135,6 +135,7 @@ class Wikicode(StringMixIn):
                 if not recursive:
                     yield (i, node)
                 else:
+                    node = repr(node)
                     self._node_sections.setdefault(node, [])
                     self._node_sections[node].append(section)
                     yield (i, node)
@@ -145,6 +146,7 @@ class Wikicode(StringMixIn):
         for i, node in temp_inodes:
             if (not forcetype or isinstance(node, forcetype)) and match(node):
                 all_words_near_ref.append(node)
+                continue
             elif not node or node.startswith(('{{', '[[', '==', '<ref>')):
                 node = node.strip()
                 continue
