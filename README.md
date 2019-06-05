@@ -26,7 +26,7 @@ jupyter notebook
 
 * `README.md` this file.
 * `data/`
-    * [citations_separated](data/citation_separated.parquet): Dataset containing all citations from Wikipedia with each of the column keys separated and compress in parquet format.
+    * [citations_separated](data/citations_separated.parquet): Dataset containing all citations from Wikipedia with each of the column keys separated and compress in parquet format.
     * [citations_ids](data/citations_ids.csv) Subset of the above dataset but containing all citation which have a valid identifier such as DOI, ISBN, PMC, PMID or ArXIV.
     * [top300_templates](data/top300_templates.csv) A CSV file which contains the TOP 300 csv templates as calculated by DLAB-EPFL.
 * `models/Sanity_Check_Citations.ipynb` a Python notebook which checks the citation dataset, compares it with previous works and also does reverse lookup.
