@@ -2,7 +2,7 @@
 
 **The documentation is written as WIKI in: [DOCUMENTATION](https://github.com/Harshdeep1996/cite-classifications-wiki/wiki)**
 
-A dataset of citations is extracted from English Wikipedia which comprises of 29 different templates such as `cite news`, `cite web`. 
+A dataset of citations is extracted from English Wikipedia (date: 2018-10-01) which comprises of 29 different templates such as `cite news`, `cite web`. 
 
 The dataset contains 23.80 million citations and then a subset is prepared which contains citations with identifiers which is 3.14 millions in size. The citations with identifiers dataset only covers the DOI, ISBN, PMC, PMID, ArXIV identifiers. 
 
