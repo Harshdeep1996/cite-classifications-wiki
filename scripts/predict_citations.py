@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import re
 import os
 import gc
 import glob
@@ -159,6 +160,7 @@ original_tag_counts.rename({0: 'tag', 1: 'count'}, axis=1, inplace=True)
 # Load the pretrained embedding model on wikipedia
 model_fasttext = FastText.load_fasttext_format('/dlabdata1/harshdee/wiki.en.bin')
 model_embedding = load_model('/dlabdata1/harshdee/embedding_model.h5')
+model = load_model('/dlabdata1/harshdee/results/citation_model_epochs_5.h5')
 
 
 def make_structure_time_features(time_features):
@@ -196,14 +198,20 @@ def get_reduced_words_dimension(data):
 # 4. `section`
 
 PATH = '/dlabdata1/harshdee/citations_features_complete.parquet/'
+FILES = os.listdir(PATH)
 
-for index__, f_name in enumerate(os.listdir(PATH)):
+for index__, f_name in enumerate(FILES):
     if f_name == '_SUCCESS':
         continue
     print('Doing filename: {}'.format(f_name))
     f_name_path = '{}{}'.format(PATH, f_name)
     wild_examples = pd.read_parquet(f_name_path, engine='pyarrow')
     wild_examples = wild_examples[~wild_examples['citations'].isin(dataset_with_features['citation'])].reset_index(drop=True)
+    print('Preprocessing the citations for wild examples')
+    wild_examples['citations'] = wild_examples['citations'].progress_apply(lambda x: re.sub('url\s{0,10}=\s{0,10}([^|]+)', 'url = ', x))
+    wild_examples['citations'] = wild_examples['citations'].progress_apply(lambda x: re.sub('work\s{0,10}=\s{0,10}([^|]+)', 'work = ', x))
+    wild_examples['citations'] = wild_examples['citations'].progress_apply(lambda x: re.sub('newspaper\s{0,10}=\s{0,10}([^|]+)', 'newspaper = ', x))
+    wild_examples['citations'] = wild_examples['citations'].progress_apply(lambda x: re.sub('website\s{0,10}=\s{0,10}([^|]+)', 'website = ', x))
     print('Number of wild citations in this file: {}'.format(wild_examples.shape))
 
     print('Any sections in the parent section: {}'.format(not any([True if i in list(largest_sections['section_name']) else False for i in set(wild_examples['sections'])])))
@@ -322,7 +330,6 @@ for index__, f_name in enumerate(os.listdir(PATH)):
     print('Features for model constructed.. now running model')
 
     ### RUN MODEL ####
-    model = load_model('/dlabdata1/harshdee/folds/citation_model_fold_4.h5')
     prediction = model.predict([test_pca, np.array(testing_auxiliary)])
     print('Shape of prediction: {}'.format(prediction.shape))
     y_pred = np.argmax(prediction, axis=1)
