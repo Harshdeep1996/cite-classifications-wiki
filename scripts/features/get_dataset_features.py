@@ -1,11 +1,16 @@
+# -*- coding: utf-8 -*-
+"""
+Extract base features and clean them as into put them into separate columns.
+"""
+
 from pyspark.sql.functions import col
 from pyspark import SparkContext, SQLContext
 
 
-INPUT_BASE_FEATURES = 'hdfs:///user/harshdee/base_features.parquet'
-WIKI_CITATIONS = 'hdfs:///user/harshdee/citations.parquet'
-DATASET_CITATIONS  = 'hdfs:///user/harshdee/ids_and_citations.parquet'
-CITATIONS_FEATURES = 'hdfs:///user/harshdee/citations_features.parquet'
+INPUT_BASE_FEATURES = 'hdfs://<path-to-file-containing-features>'
+WIKI_CITATIONS = 'hdfs://<path-to-file-containing-all-citations>'
+DATASET_CITATIONS  = 'hdfs://<path-to-file-with-citations-and-ids>'
+CITATIONS_FEATURES = 'hdfs://<output-file-path>/citations_features.parquet'
 
 sc = SparkContext()
 sqlContext = SQLContext(sc)

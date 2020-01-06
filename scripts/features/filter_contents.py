@@ -1,9 +1,14 @@
+# -*- coding: utf-8 -*-
+"""
+Get citations content only for certain set of titles which were based on argument file.
+"""
+
 from pyspark.sql import Row
 from pyspark import SparkContext, SQLContext
 
-INPUT_DATA = 'hdfs:///user/harshdee/citations_content.parquet'
-TITLES_DATA = 'hdfs:///user/harshdee/titles_df.parquet'
-OUTPUT_DATA = 'hdfs:///user/harshdee/filtered_citations_content.parquet'
+INPUT_DATA = 'hdfs://<path-to-file-containing-content-for-wikipedia>'
+TITLES_DATA = 'hdfs://<path-to-file-containing-all-unique-titles>'
+OUTPUT_DATA = 'hdfs://<output-file-path>/filtered_citations_content.parquet'
 
 sc = SparkContext()
 sqlContext = SQLContext(sc)

@@ -1,11 +1,16 @@
+# -*- coding: utf-8 -*-
+"""
+For all the newspaper citations, get their corresponding features for a particular subset of data.
+"""
+
 from pyspark.sql import Row
 from pyspark import SparkContext, SQLContext
 from pyspark.sql.functions import udf, lit, col
 from pyspark.sql.types import ArrayType, StringType
 
 
-FEATURES_DATA = 'hdfs:///user/harshdee/base_features_complete.parquet'
-SELECTED_NEWSPAPERS = 'hdfs:///user/harshdee/selected_newspapers_citations.parquet/'
+FEATURES_DATA = 'hdfs://<path-to-base-features>'
+SELECTED_NEWSPAPERS = 'hdfs://<output-file-path>/selected_newspapers_citations.parquet/'
 
 sc = SparkContext()
 sqlContext = SQLContext(sc)

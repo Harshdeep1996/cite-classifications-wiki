@@ -1,8 +1,13 @@
+# -*- coding: utf-8 -*-
+"""
+Get content for all the wikipedia pages given in a dump.
+"""
+
 from pyspark.sql import Row
 from pyspark import SparkContext, SQLContext
 
-INPUT_DATA = 'hdfs:///user/piccardi/enwiki-20181001-pages-articles-multistream.xml.bz2'
-OUTPUT_DATA = 'hdfs:///user/harshdee/citations_content.parquet'
+INPUT_DATA = 'hdfs://<path-to-wiki-dump>/enwiki-20181001-pages-articles-multistream.xml.bz2'
+OUTPUT_DATA = 'hdfs://<path-to-citations-content>/citations_content.parquet'
 
 sc = SparkContext()
 sqlContext = SQLContext(sc)

@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+For each citation check if they conform to a template as given in scripts/const.py
+
+and then extract features for all of them based on their content.
+"""
+
 import re
 import mwparserfromhell
 from nltk import pos_tag
@@ -5,8 +12,8 @@ from pyspark.sql import Row
 from pyspark.sql.functions import explode
 from pyspark import SparkContext, SQLContext
 
-INPUT_DATA = 'hdfs:///user/harshdee/filtered_citations_content.parquet'
-OUTPUT_DATA = 'hdfs:///user/harshdee/base_features.parquet'
+INPUT_DATA = 'hdfs://<path-to-citations-with-content>'
+OUTPUT_DATA = 'hdfs://<output-file-path>/base_features.parquet'
 
 sc = SparkContext()
 sqlContext = SQLContext(sc)
