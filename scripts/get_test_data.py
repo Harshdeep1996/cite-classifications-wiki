@@ -1,8 +1,11 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
+"""
+Get random Wikicode formatted citations based on the content of the Wikipedia page for testing purposes.
+"""
 
 from pyspark import SparkContext, SQLContext
 
-INPUT_DATA = 'hdfs:///user/piccardi/enwiki-20181001-pages-articles-multistream.xml.bz2'
+INPUT_DATA = 'hdfs://<path-to-wiki-dump>'
 
 sc = SparkContext()
 sqlContext = SQLContext(sc)

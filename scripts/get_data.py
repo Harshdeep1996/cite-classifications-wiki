@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-## STEP 1: Get the citations for each article from the wikicode data ##
+"""
+Get all Wikicode formatted citations based on the content of the Wikipedia page.
+"""
 
 from pyspark.sql import Row
 from helpers import get_citations
@@ -7,8 +9,8 @@ from pyspark import SparkContext, SQLContext
 from pyspark.sql.functions import explode, col, split, trim, lower, regexp_replace
 
 
-INPUT_DATA = 'hdfs:///user/piccardi/enwiki-20181001-pages-articles-multistream.xml.bz2'
-OUTPUT_DATA = 'hdfs:///user/harshdee/citations.parquet'
+INPUT_DATA = 'hdfs://<path-to-wiki-dump>/enwiki-20181001-pages-articles-multistream.xml.bz2'
+OUTPUT_DATA = 'hdfs:///<output-file-path>/citations.parquet'
 
 sc = SparkContext()
 sqlContext = SQLContext(sc)

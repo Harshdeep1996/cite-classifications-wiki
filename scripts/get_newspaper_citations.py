@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Get newspaper citations based on the Top level domain from the URL feature of the citations.
+
+Can also be used for extraction of entertainment/videos citations
+"""
+
 import tldextract
 
 from pyspark.sql import Row
@@ -6,8 +13,8 @@ from pyspark.sql.functions import udf, lit, col
 from pyspark.sql.types import ArrayType, StringType
 
 
-INPUT_DATA = 'hdfs:///user/harshdee/citations_separated.parquet'
-OUTPUT_DATA = 'hdfs:///user/harshdee/selected_newspapers_citations.parquet/'
+INPUT_DATA = 'hdfs://<path-to-citations-dataframe>'
+OUTPUT_DATA = 'hdfs://<output-file-path>'
 
 sc = SparkContext()
 sqlContext = SQLContext(sc)

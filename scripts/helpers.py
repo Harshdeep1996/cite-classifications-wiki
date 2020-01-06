@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Helper functions for extraction of citation templates from Wiki dump.
+"""
 
 import re
 import mwparserfromhell

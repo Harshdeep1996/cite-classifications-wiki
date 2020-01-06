@@ -2,6 +2,10 @@
 
 # Ref: https://github.com/dissemin/wikiciteparser/blob/master/wikiciteparser/en/__init__.py
 
+"""
+List of citation templates which are going to be extracted
+"""
+
 CITATION_TEMPLATES = set([
     'citation',
     'cite arxiv',

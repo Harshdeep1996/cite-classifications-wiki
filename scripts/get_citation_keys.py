@@ -1,5 +1,7 @@
 # -*- encoding: utf-8 -*-
-## STEP 3: Break the citation into different separate columns for more visiblility ##
+"""
+Break the citation into different separate columns for constructing it into a DataFrame for further usage.
+"""
 
 from pyspark.sql import Row
 from pyspark import SparkContext, SQLContext
@@ -7,8 +9,8 @@ from pyspark.sql.functions import udf, lit, col
 from pyspark.sql.types import ArrayType, StringType
 
 
-INPUT_DATA = 'hdfs:///user/harshdee/generic_citations.parquet/'
-OUTPUT_DATA = 'hdfs:///user/harshdee/citations_separated.parquet'
+INPUT_DATA = 'hdfs://<path-to-generic-citations>'
+OUTPUT_DATA = 'hdfs://<output-file-path>/citations_separated.parquet'
 
 sc = SparkContext()
 sqlContext = SQLContext(sc)

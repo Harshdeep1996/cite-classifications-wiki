@@ -1,5 +1,7 @@
 # -*- encoding: utf-8 -*-
-## STEP 2: Get the citations mapped to the same generic template ##
+"""
+Get the citations mapped to the same generic template -- so that we have uniformity.
+"""
 
 import mwparserfromhell
 from pyspark.sql import Row
@@ -10,8 +12,8 @@ from wikiciteparser.parser import parse_citation_template
 from pyspark.sql.functions import split, regexp_replace, trim, lower, explode, col, expr
 
 
-INPUT_DATA = 'hdfs:///user/harshdee/citations.parquet'
-OUTPUT_DATA = 'hdfs:///user/harshdee/generic_citations.parquet'
+INPUT_DATA = 'hdfs://<path-to-where-citations-is>/citations.parquet'
+OUTPUT_DATA = 'hdfs://<output-file-path>/generic_citations.parquet'
 
 sc = SparkContext()
 sqlContext = SQLContext(sc)

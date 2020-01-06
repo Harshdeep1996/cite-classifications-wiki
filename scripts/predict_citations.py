@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
+"""
+Script which get all the unique wild examples -- picks the first one (in case of duplicates)
+takes a model and labels them into 4 different categories -- book, journal, newspaper, entertainment.
+
+Need to define -- citations_features file path.
+Also need to load the citation classification model and fasttext model for feature building.
+"""
 
 import re
 import os
@@ -143,6 +150,7 @@ dataset_with_features['label_category'] = le.transform(dataset_with_features['ac
 ## Remove rows which have duplicate ID and citations since they are just the same examples
 dataset_with_features = dataset_with_features.drop_duplicates(subset=['id', 'citation']) ## keeps first row
 
+## Delete variables to have more memory on disk
 del citations_features
 del dataset
 del book_journal_features
@@ -151,16 +159,17 @@ del entertainment_features
 gc.collect()
 
 ## Get the top 150 sections which we got from training the 2.7 million citations
-largest_sections = pd.read_csv('/dlabdata1/harshdee/largest_sections.csv', header=None)
+largest_sections = pd.read_csv('<path>/largest_sections.csv', header=None)
 largest_sections.rename({0: 'section_name', 1: 'count'}, axis=1, inplace=True)
 
-original_tag_counts = pd.read_csv('/dlabdata1/harshdee/tag_counts.csv', header=None)
+original_tag_counts = pd.read_csv('<path>/tag_counts.csv', header=None)
 original_tag_counts.rename({0: 'tag', 1: 'count'}, axis=1, inplace=True)
 
 # Load the pretrained embedding model on wikipedia
-model_fasttext = FastText.load_fasttext_format('/dlabdata1/harshdee/wiki.en.bin')
-model_embedding = load_model('/dlabdata1/harshdee/embedding_model.h5')
-model = load_model('/dlabdata1/harshdee/results/citation_model_epochs_5.h5')
+## Change these paths depending upon where they are in your system
+model_fasttext = FastText.load_fasttext_format('<path>/wiki.en.bin')
+model_embedding = load_model('<path>/embedding_model.h5')
+model = load_model('<path>/citation_model_epochs_5.h5')
 
 
 def make_structure_time_features(time_features):
@@ -197,7 +206,7 @@ def get_reduced_words_dimension(data):
 # 3. `tags`
 # 4. `section`
 
-PATH = '/dlabdata1/harshdee/citations_features_complete.parquet/'
+PATH = '<file-path-to-citations-features>'
 FILES = os.listdir(PATH)
 
 for index__, f_name in enumerate(FILES):

@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Able to do synchronous requests to Google Books and CrossRef APIs for metadata extraction.
+
+These methods should be used for small loads of metadata extraction.
+"""
+
 import requests
 
 

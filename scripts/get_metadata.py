@@ -1,3 +1,16 @@
+# -*- coding: utf-8 -*-
+"""
+Extract metadata for wild examples which have been classified into journal/book.
+
+Metadata is extracted asynchronously in order to do extraction for huge data.
+
+For URL requests, there are multiple parameters such as
+    1. interval - time in which a certain number of requests should be sent
+    2. limit - number of requests to be sent in an interval
+    3. interval rate - increase/decrease interval rate
+    4. limit rate - increase/decrease limit as time goes on
+"""
+
 import os
 import ast
 import json
@@ -9,7 +22,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 
-STORE_PATH = '/home/harshdee/lookup'
+STORE_PATH = '<path-to-folder-where-you-want-to-store-results-in-chunk>'
 
 class RateLimitMemory:
 
@@ -97,8 +110,7 @@ def get_params(dataset):
 
 
 def main():
-    # dataset = pd.read_csv('wild_exp_info.csv')
-    dataset_name = 'wild_exp_info.csv'
+    dataset_name = '<path-to-wild-citations-which-need-to-be-queried>'
     c_size = 75
     chunk_counter = 0
 
