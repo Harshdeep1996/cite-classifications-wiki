@@ -26,23 +26,16 @@ jupyter notebook
 
 * `README.md` this file.
 * `data/`
-    * [citations_separated](data/citations_separated.parquet): Dataset containing all citations from Wikipedia with each of the column keys separated and compress in parquet format.
+    * [citations_separated](data/citations_separated.parquet): Dataset containing all citations from Wikipedia with each of the column keys separated and compress in parquet format **(pre lookup)**.
     * [citations_ids](data/citations_ids.csv) Subset of the above dataset but containing all citation which have a valid identifier such as DOI, ISBN, PMC, PMID or ArXIV.
     * [top300_templates](data/top300_templates.csv) A CSV file which contains the TOP 300 csv templates as calculated by DLAB-EPFL.
-* `models/Sanity_Check_Citations.ipynb` a Python notebook which checks the citation dataset, compares it with previous works and also does reverse lookup.
-* `models/Feature_Data_Analysis.ipynb` a Python notebook which makes a labeled citation with identifiers dataset using rules and contextual embeddings.
-* `models/notebooks/random_forest.ipynb` a Python notebook to train a Random Forest model which does citation classification task. The training/testing set can be generated from the notebook.
-* `models/notebooks/citation_network.ipynb` a Python notebook to train a deep learning (LSTMs, Neural Nets) model which does citation classification task. The training/testing set can be generated from the notebook.
-* `mwparserfromhell/` The forked parser library which parses Wikicode page content. It has been forked since we needed to do some changes to the parsing library.
-* `scripts/`
-   * [get data](scripts/get_data.py) load the XML dataset, get the data needed and do some initial parsing to get only sentences written in Wikicode.
-   * [get generic template](scripts/get_generic_tmpl.py) map different citation templates into the same dictionary template.
-   * [get citation keys](scripts/get_citation_keys.py) split the citation dictionary into different columns and do some cleaning/processing.
-   * [constants](scripts/const.py) constants which are used in the scripts above.
-   * [helper functions](scripts/helpers.py) helper functions which are used in the scripts above.
-   * [get test data](scripts/get_test_data.py) get randomly sampled testing data for testing harness.
-   * [run lookup APIs](scripts/run_apis.py) methods through which `Crossref` and `Google books` APIs can be queried using identifier or title/author information.
-    * `features/`
-      * [filter by page content](scripts/features/filter_contents.py) out of all the wikipedia pages, get pages which we are interested in getting the features for.
-      * [extract NLP features](scripts/features/extract_nlp_features.py) Generate features for those pages by considering the page content.
-      * [get features for dataset](scripts/features/get_dataset_features.py) Join the generated features with the citations and do some cleaning to the structure of the dataframe.
+* `libraries/`: Contains the libraries `mwparserfromhell` and `wikiciteparser` which have been changed for the scope of the project. To get all the datasets, the user would need to install these versions of the libraries.
+* `lookup`: Contains two scripts `run_metadata.py` and `get_apis.py` which can be used to query CrossRef and Google books. `run_metadata.py` script is run asynchronously and right now can only be used for CrossRef. `get_apis.py` uses the `requests` library and can be used for querying short loads of metadata. Other files are related to the crossref evaluation to known what is the best heuristic and confidence threshold.
+* `notebooks`: Contains the notebooks which  -- 
+   * do analysis against some other similar work (`Sanity_Check_Citations.ipynb`)
+   * play with features (`Feature_Data_Analysis.ipynb`)
+   * the hybrid network model which does the classification for the examples and contains all the steps (`citation_network_model_4_labels.ipynb`)
+   * some of the results and which we get from the lookup -- and the corresponding label we classify them into (`results_predication_lookup.ipynb`)
+   * doing post lookup steps such as linking the potential journal labeled citations with their corresponding metadata (`wild_examples_lookup_journal.ipynb`)
+* `scripts`: Contains all the scripts to generate the dataset and features. For each script, a description is given at the top. All the paths to files are currently **dummy** -- so please remember while running these scripts to change them.
+* `tests`: Some tests to check if the scripts for the data generation do what they are supposed to. Multiple tests would be added in the future to check the whole pipeline.
