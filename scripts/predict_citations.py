@@ -1,12 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-"""
-Script which get all the unique wild examples -- picks the first one (in case of duplicates)
-takes a model and labels them into 4 different categories -- book, journal, newspaper, entertainment.
-
-Need to define -- citations_features file path.
-Also need to load the citation classification model and fasttext model for feature building.
-"""
 
 import re
 import os
@@ -14,6 +7,7 @@ import gc
 import glob
 import keras
 import numbers
+import tldextract
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -25,7 +19,6 @@ from keras.models import load_model
 import matplotlib.pyplot as plt
 from collections import Counter
 from sklearn import preprocessing
-from sklearn.manifold import TSNE
 from gensim.models import FastText
 from sklearn.decomposition import PCA
 from keras.callbacks import ReduceLROnPlateau
@@ -46,131 +39,66 @@ from tensorflow.python.client import device_lib
 local_device_protos = device_lib.list_local_devices()
 print([x.name for x in local_device_protos if x.device_type == 'GPU'])
 
-
 np.random.seed(0)
 
-citations_features = pd.read_parquet('/dlabdata1/harshdee/citations_features.parquet/', engine='pyarrow')
-dataset = pd.read_csv('../dataset.csv')
+# Get the kinds of ids associated with each tuple
+def update_ids(x):
+    kinds_of_ids = set()
+    for item in x:
+        kinds_of_ids.add(item[0])
+    return kinds_of_ids
 
-# Merging the citation and their corresponding features which have been extracted
-book_journal_features = pd.merge(
-    dataset, citations_features, how='inner', left_on=['id','citation'], right_on = ['id','citation']
-)
-book_journal_features.drop('page_title_y', axis=1, inplace=True)
-book_journal_features.drop('Unnamed: 0', axis=1, inplace=True)
-
-print(book_journal_features.shape)
-
-# Only consider unique citations so that the dataset is more varied
-book_journal_features = book_journal_features.set_index(['id', 'citation'])
-book_journal_features = book_journal_features[~book_journal_features.index.duplicated(keep='first')]
-book_journal_features = book_journal_features.reset_index()
-book_journal_features['actual_label'] = 'rest'
-book_journal_features.loc[~pd.isna(book_journal_features['PMC']), ['actual_label']] = 'journal'
-book_journal_features.loc[~pd.isna(book_journal_features['PMID']), ['actual_label']] = 'journal'
-
-
-only_doi = (
-    ~pd.isna(book_journal_features['DOI']) & 
-    pd.isna(book_journal_features['PMC']) & 
-    pd.isna(book_journal_features['PMID']) &
-    pd.isna(book_journal_features['ISBN'])
-)
-book_journal_features.loc[only_doi, ['actual_label']] = 'journal'
-
-only_book = (
-    ~pd.isna(book_journal_features['ISBN']) & 
-    pd.isna(book_journal_features['PMC']) & 
-    pd.isna(book_journal_features['PMID']) &
-    pd.isna(book_journal_features['DOI'])
-)
-book_journal_features.loc[only_book, ['actual_label']] = 'book'
-
-both_book_and_doi_journal = (
-    ~pd.isna(book_journal_features['ISBN']) & 
-    ~pd.isna(book_journal_features['DOI']) & 
-    pd.isna(book_journal_features['PMID']) &
-    pd.isna(book_journal_features['PMC']) &
-    book_journal_features['citation_type'].isin(['cite journal', 'cite conference'])
-)
-book_journal_features.loc[both_book_and_doi_journal, ['actual_label']] = 'journal'
-
-both_book_and_doi_book = (
-    ~pd.isna(book_journal_features['ISBN']) & 
-    ~pd.isna(book_journal_features['DOI']) & 
-    pd.isna(book_journal_features['PMID']) &
-    pd.isna(book_journal_features['PMC']) &
-    book_journal_features['citation_type'].isin(['cite book', 'cite encyclopedia'])
-)
-book_journal_features.loc[both_book_and_doi_book, ['actual_label']] = 'book'
-
-## Made the dataset which contains citations book and journal labeled
-book_journal_features = book_journal_features[book_journal_features['actual_label'].isin(['book', 'journal'])]
-book_journal_features = book_journal_features[[
-    'sections', 'citation_type', 'citation', 'id', 'ref_index',
-     'total_words', 'neighboring_tags', 'actual_label', 'neighboring_words'
-]]
-print(book_journal_features.shape)
-
-## loading the dataset of newspapers which was generated from the citations_separated dataset
-li = []
-all_files = glob.glob('/dlabdata1/harshdee/newspapers_citations_features.csv/' + "/*.csv")
-
-for filename in all_files:
-    df = pd.read_csv(filename, header=None, sep='\t')
-    li.append(df)
-
-newspaper_data = pd.concat(li, axis=0, ignore_index=True)
-newspaper_data.shape
-
-newspaper_data = newspaper_data[[0, 1, 2, 3, 4, 28, 32, 33]]
-newspaper_data.rename({
-    0: 'citation', 1: 'ref_index', 2: 'total_words',
-    3: 'neighboring_words', 4: 'neighboring_tags', 
-    28: 'id', 32: 'sections', 33: 'citation_type'}, axis=1, inplace=True)
-newspaper_data['actual_label'] = 'newspaper'
-
-entertainment_features = pd.read_parquet(
-    '/dlabdata1/harshdee/entertainment_citations_complete.parquet/', engine='pyarrow')
-
-entertainment_features = entertainment_features[[
-    'ref_index', 'total_words', 'neighboring_words', 'neighboring_tags', 'id', 'sections', 'citations']]
-entertainment_features.rename({'citations': 'citation'}, axis=1, inplace=True)
-
-entertainment_features['actual_label'] = 'entertainment'
-newspaper_data.drop('citation_type', axis=1, inplace=True)
-book_journal_features.drop('citation_type', axis=1, inplace=True)
-
-dataset_with_features = pd.concat([book_journal_features, newspaper_data, entertainment_features])
-print(dataset_with_features.shape)
-
-le = preprocessing.LabelEncoder()
-le.fit(dataset_with_features['actual_label'])
-dataset_with_features['label_category'] = le.transform(dataset_with_features['actual_label'])
-## Remove rows which have duplicate ID and citations since they are just the same examples
-dataset_with_features = dataset_with_features.drop_duplicates(subset=['id', 'citation']) ## keeps first row
-
-## Delete variables to have more memory on disk
-del citations_features
-del dataset
-del book_journal_features
-del newspaper_data
-del entertainment_features
-gc.collect()
+##################################################################################################
+# ##################################################################################################
+# ## Newspaper data ##
 
 ## Get the top 150 sections which we got from training the 2.7 million citations
-largest_sections = pd.read_csv('<path>/largest_sections.csv', header=None)
+largest_sections = pd.read_csv('/dlabdata1/harshdee/largest_sections.csv', header=None)
 largest_sections.rename({0: 'section_name', 1: 'count'}, axis=1, inplace=True)
 
-original_tag_counts = pd.read_csv('<path>/tag_counts.csv', header=None)
+original_tag_counts = pd.read_csv('/dlabdata1/harshdee/tag_counts.csv', header=None)
 original_tag_counts.rename({0: 'tag', 1: 'count'}, axis=1, inplace=True)
 
 # Load the pretrained embedding model on wikipedia
-## Change these paths depending upon where they are in your system
-model_fasttext = FastText.load_fasttext_format('<path>/wiki.en.bin')
-model_embedding = load_model('<path>/embedding_model.h5')
-model = load_model('<path>/citation_model_epochs_5.h5')
+model_fasttext = FastText.load_fasttext_format('/dlabdata1/harshdee/wiki.en.bin')
+model_embedding = load_model('/dlabdata1/harshdee/embedding_model.h5')
+model = load_model('/dlabdata1/harshdee/results/citation_model_epochs_30.h5')
 
+print('Loaded files and intermediary files...')
+
+newspaper_data = pd.read_parquet(
+    '/dlabdata1/harshdee/newspapers_citations_features.parquet', engine='pyarrow')
+entertainment_features = pd.read_parquet(
+    '/dlabdata1/harshdee/entertainment_citations_features.parquet', engine='pyarrow')
+print('Loaded newspaper and entertainment datasets...')
+
+def needs_a_label_or_not(row):
+    """
+        'ID_list' (0), 'citations' (1), 'type_of_citation'(2)
+    """
+    if row[1] in newspaper_data['citations']:
+       return 'web'
+    if row[1] in entertainment_features['citations']:
+       return 'web'
+    if not row[0]:
+        return 'NO LABEL'
+
+    id_list_str = list(
+        item.split('=')
+        for item in row[0].replace('{','').replace('}','').replace(' ', '').split(','))
+    if len([i for i in ['PMC', 'PMID'] if i in update_ids(id_list_str)]) > 0:
+        return 'journal'
+    elif len([i for i in ['DOI'] if i in update_ids(id_list_str)]) == 1:
+        if (len([i for i in ['DOI', 'ISBN'] if i in update_ids(id_list_str)]) == 2) and ('cite journal' in row[2]) and ('cite conference' in row[2]):
+            return 'journal'
+        elif (len([i for i in ['ISBN', 'DOI'] if i in update_ids(id_list_str)]) == 2) and ('cite book' in row[2]) and ('cite encyclopedia' in row[2]):
+            return 'book'
+        else:
+            return 'journal'
+    elif len([i for i in ['ISBN'] if i in update_ids(id_list_str)]) == 1:
+        return 'book'
+    else:
+        return 'NO LABEL'
 
 def make_structure_time_features(time_features):
     """
@@ -178,7 +106,7 @@ def make_structure_time_features(time_features):
 
     param: time_features: the features which are considered time sequence.
     """
-    feature_one = np.array([i for i in time_features if isinstance(i, numbers.Number)])
+    feature_one = np.array([i for i in time_features if (isinstance(i, numbers.Number) or isinstance(i, long))])
     feature_two = np.array([i for i in time_features if isinstance(i, list)][0])
     return np.array([feature_one, feature_two])
 
@@ -199,24 +127,24 @@ def get_reduced_words_dimension(data):
     return np.dstack((word_embeddings_pca, tags))
 
 
-# ### Get auxiliary features and divide them into labels and get predictions
-# 
-# 1. `ref_index`
-# 2. `total_words`
-# 3. `tags`
-# 4. `section`
-
-PATH = '<file-path-to-citations-features>'
+PATH = '/dlabdata1/harshdee/citations_features.parquet/'
 FILES = os.listdir(PATH)
 
 for index__, f_name in enumerate(FILES):
     if f_name == '_SUCCESS':
         continue
-    print('Doing filename: {}'.format(f_name))
     f_name_path = '{}{}'.format(PATH, f_name)
-    wild_examples = pd.read_parquet(f_name_path, engine='pyarrow')
-    wild_examples = wild_examples[~wild_examples['citations'].isin(dataset_with_features['citation'])].reset_index(drop=True)
+    all_examples = pd.read_parquet(f_name_path, engine='pyarrow')
+    print('Doing filename: {} with citations: {}'.format(f_name, all_examples.shape[0]))
+    all_examples['real_citation_text'] = all_examples['citations']
+    all_examples['needs_a_label'] = all_examples[['ID_list', 'citations', 'type_of_citation']].progress_apply(
+        lambda x: needs_a_label_or_not(x), axis=1)
+    not_wild_examples = all_examples[all_examples['needs_a_label'] != 'NO LABEL'].reset_index(drop=True)
+    wild_examples = all_examples[all_examples['needs_a_label'] == 'NO LABEL'].reset_index(drop=True)
     print('Preprocessing the citations for wild examples')
+
+    print(all_examples.shape, wild_examples.shape, not_wild_examples.shape)
+    ## Remove the biases
     wild_examples['citations'] = wild_examples['citations'].progress_apply(lambda x: re.sub('doi\s{0,10}=\s{0,10}([^|]+)', 'doi = ', x))
     wild_examples['citations'] = wild_examples['citations'].progress_apply(lambda x: re.sub('isbn\s{0,10}=\s{0,10}([^|]+)', 'isbn = ', x))
     wild_examples['citations'] = wild_examples['citations'].progress_apply(lambda x: re.sub('pmc\s{0,10}=\s{0,10}([^|]+)', 'pmc = ', x))
@@ -227,11 +155,14 @@ for index__, f_name in enumerate(FILES):
     wild_examples['citations'] = wild_examples['citations'].progress_apply(lambda x: re.sub('website\s{0,10}=\s{0,10}([^|]+)', 'website = ', x))
     print('Number of wild citations in this file: {}'.format(wild_examples.shape))
 
-    print('Any sections in the parent section: {}'.format(not any([True if i in list(largest_sections['section_name']) else False for i in set(wild_examples['sections'])])))
+    print('Any sections in the parent section: {}'.format(
+        not any([True if i in list(largest_sections['section_name']) else False for i in set(wild_examples['sections'])])))
     # Only processing auxiliary features which are going to be used in the neural network
     auxiliary_features = wild_examples[['sections', 'citations', 'ref_index', 'neighboring_words', 'total_words', 'neighboring_tags']]
 
     ###### SECTION GENERATION ########
+    auxiliary_features['sections'] = auxiliary_features['sections'].apply(
+        lambda x: x.encode('utf-8') if isinstance(x, unicode) else str(x))
     auxiliary_features['sections'] = auxiliary_features['sections'].astype(str)
     auxiliary_features['sections'] = auxiliary_features['sections'].progress_apply(lambda x: x.split(', '))
     # Change section to `OTHERS` if occurence of the section is not in the 150 largest sections
@@ -262,6 +193,7 @@ for index__, f_name in enumerate(FILES):
     citation_tag_features['neighboring_tags'] = citation_tag_features['neighboring_tags'].progress_apply(lambda x: " ".join(x))
     transformed_neighboring_tags = cv.fit_transform(citation_tag_features['neighboring_tags'])
     transformed_neighboring_tags = pd.DataFrame(transformed_neighboring_tags.toarray(), columns=cv.get_feature_names())
+    citation_tag_features = citation_tag_features.reset_index(drop=True)
     citation_tag_features = pd.concat([citation_tag_features, transformed_neighboring_tags], join='inner', axis=1)
     citation_tag_features.drop('neighboring_tags', axis=1, inplace=True)
 
@@ -310,22 +242,22 @@ for index__, f_name in enumerate(FILES):
         word_embedding_matrix[word2ind[w]] = model_fasttext.wv[w]
     citation_word_features['words_embedding'] = citation_word_features['neighboring_words'].progress_apply(lambda x: sum([word_embedding_matrix[word2ind[w]] for w in x]))
     # Join time sequence features with the citations dataset
-    time_sequence_features = pd.concat([citation_tag_features, citation_word_features], keys=['id', 'citation'], axis=1)
+    time_sequence_features = pd.concat([citation_tag_features, citation_word_features.reset_index(drop=True)], keys=['id', 'citations'], axis=1)
     time_sequence_features = time_sequence_features.loc[:, ~time_sequence_features.columns.duplicated()]
     print('Total number of samples in time features are: {}'.format(time_sequence_features.shape))
 
     # Join auxiliary features with the citations dataset
     citation_text_features.reset_index(drop=True, inplace=True)
     auxiliary_features.reset_index(drop=True, inplace=True)
-    auxiliary_features = pd.concat([auxiliary_features, citation_text_features], keys=['id', 'citation'], axis=1)
-    auxiliary_features = pd.concat([auxiliary_features['citation'], auxiliary_features['id']], axis=1)
+    auxiliary_features = pd.concat([auxiliary_features, citation_text_features], keys=['id', 'citations'], axis=1)
+    auxiliary_features = pd.concat([auxiliary_features['citations'], auxiliary_features['id']], axis=1)
     auxiliary_features = auxiliary_features.loc[:, ~auxiliary_features.columns.duplicated()]
     print('Auxiliary features are: {}'.format(auxiliary_features.shape))
     auxiliary_features.drop(['neighboring_tags'], axis=1, inplace=True)
 
     ### Making sets for `auxiliary` and `time sequence` features ###
     print('Auxiliary: {} Time: {}'.format(auxiliary_features.shape, time_sequence_features.shape))
-    time_sequence_features = pd.concat([time_sequence_features['id'], time_sequence_features['citation']], axis=1)
+    time_sequence_features = pd.concat([time_sequence_features['id'], time_sequence_features['citations']], axis=1)
     time_sequence_features['words_embedding'] = [np.array([]) if not isinstance(x, np.ndarray) else x for x in time_sequence_features['words_embedding']]
     time_sequence_features['words_embedding'] = time_sequence_features['words_embedding'].progress_apply(lambda x: list(x))
     auxiliary_features['embedding'] = auxiliary_features['embedding'].progress_apply(lambda x: x.tolist())
@@ -350,6 +282,13 @@ for index__, f_name in enumerate(FILES):
     print('Done with model prediction for index: {}'.format(index__))
 
     ### Result saved ####
-    wild_examples[['citations', 'label_category']].to_csv('/dlabdata1/harshdee/results/result_{}.csv'.format(index__), index=False)
+    not_wild_examples['label_category'] = None
+    columns = ['id', 'page_title', 'real_citation_text', 'ID_list', 'type_of_citation', 'label_category', 'needs_a_label']
+    resultant_examples = pd.concat([wild_examples[columns], not_wild_examples[columns]]).reset_index(drop=True)
+    resultant_examples.rename({'label_category': 'predicted_label_no', 'needs_a_label': 'existing_label', 'real_citation_text': 'citations'}, axis=1, inplace=True)
+    print('Saving a file with f_name: {} with citations: {} with all:{} and wild: {} and non-wild: {}'.format(
+        f_name, resultant_examples.shape[0], all_examples.shape[0], wild_examples.shape[0], not_wild_examples.shape[0]))
+    resultant_examples.to_csv('/dlabdata1/harshdee/results/result_{}.csv'.format(index__), index=False, encoding='utf-8')
     print('\nFile saved for part: {}\n\n'.format(index__))
+
 

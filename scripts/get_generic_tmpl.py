@@ -1,7 +1,4 @@
 # -*- encoding: utf-8 -*-
-"""
-Get the citations mapped to the same generic template -- so that we have uniformity.
-"""
 
 import mwparserfromhell
 from pyspark.sql import Row
@@ -12,11 +9,12 @@ from wikiciteparser.parser import parse_citation_template
 from pyspark.sql.functions import split, regexp_replace, trim, lower, explode, col, expr
 
 
-INPUT_DATA = 'hdfs://<path-to-where-citations-is>/citations.parquet'
-OUTPUT_DATA = 'hdfs://<output-file-path>/generic_citations.parquet'
+INPUT_DATA = 'hdfs:///user/harshdee/citations.parquet'
+OUTPUT_DATA = 'hdfs:///user/harshdee/generic_citations.parquet'
 
 sc = SparkContext()
 sqlContext = SQLContext(sc)
+
 citations = sqlContext.read.parquet(INPUT_DATA)
 
 citations = citations.withColumn('type_of_citation', expr('substring(type_of_citation, 3, length(type_of_citation))'))
@@ -53,8 +51,8 @@ def get_as_row(line):
         citation_dict=get_generic_template(line.citations), id=line.id,
         page_title=line.title, type_of_citation=line.type_of_citation,
         r_id=line.r_id, r_parentid=line.r_parentid,
-        citations=line.citations, sections=sections
+        citations=line.citations, sections=line.sections
     )
 
-generic_citations = sqlContext.createDataFrame(citations.map(get_as_row))
+generic_citations = sqlContext.createDataFrame(citations.rdd.map(get_as_row))
 generic_citations.write.mode('overwrite').parquet(OUTPUT_DATA)
