@@ -12,12 +12,12 @@ from pyspark.sql import Row
 from pyspark.sql.functions import explode
 from pyspark import SparkContext, SQLContext
 
-INPUT_DATA = 'hdfs://<path-to-citations-with-content>'
-OUTPUT_DATA = 'hdfs://<output-file-path>/base_features.parquet'
+INPUT_DATA = 'hdfs:///user/harshdee/citations_content.parquet'
+OUTPUT_DATA = 'hdfs:///user/harshdee/base_features_complete.parquet'
 
 sc = SparkContext()
 sqlContext = SQLContext(sc)
-citations_content = sqlContext.read.parquet(INPUT_DATA)
+citations_content = sqlContext.read.parquet(INPUT_DATA).repartition(400)
 
 TOTAL_NEIGHBORING_WORDS = 40
 
@@ -41,10 +41,8 @@ def get_features(page_content):
     words_plus_tags = [(w,t) for w, t in pos_tag(all_words)]
     # Set tag to be WIKICODE if it is a citation or a wikicode
     words_plus_tags = [(w, 'WIKICODE') if w.startswith('{{') else (w,t) for w, t in words_plus_tags]
-
     # return words_plus_tags
     total_words_in_page = len(words_plus_tags)
-
     results = []
     for tpl in templates:
         tpl = repr(tpl)
@@ -62,11 +60,8 @@ def get_features(page_content):
 
 def get_as_row(line):
     citations_features = get_features(line.content)
-    # words_plus_tags = get_features(line.content)
-    # return Row(words_plus_tags=words_plus_tags, page_title=line.page_title)
-    return Row(citations_features=citations_features, page_title=line.page_title)
+    return Row(citations_features=citations_features, page_title=line.page_title, id=line.id)
 
 citations_content = sqlContext.createDataFrame(citations_content.rdd.map(get_as_row))
 citations_content = citations_content.withColumn('citations_features', explode('citations_features'))
 citations_content.write.mode('overwrite').parquet(OUTPUT_DATA)
-

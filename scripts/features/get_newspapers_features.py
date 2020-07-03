@@ -1,16 +1,11 @@
-# -*- coding: utf-8 -*-
-"""
-For all the newspaper citations, get their corresponding features for a particular subset of data.
-"""
-
 from pyspark.sql import Row
 from pyspark import SparkContext, SQLContext
 from pyspark.sql.functions import udf, lit, col
 from pyspark.sql.types import ArrayType, StringType
 
 
-FEATURES_DATA = 'hdfs://<path-to-base-features>'
-SELECTED_NEWSPAPERS = 'hdfs://<output-file-path>/selected_newspapers_citations.parquet/'
+FEATURES_DATA = 'hdfs:///user/harshdee/base_features_complete.parquet'
+SELECTED_NEWSPAPERS = 'hdfs:///user/harshdee/newspapers_citations.parquet'
 
 sc = SparkContext()
 sqlContext = SQLContext(sc)
@@ -28,12 +23,16 @@ features = features.select(
 
 selected_newspapers = sqlContext.read.parquet(SELECTED_NEWSPAPERS)
 
-def array_to_string(my_list):
-    return '[' + ','.join([str(elem) for elem in my_list]) + ']'
-array_to_string_udf = udf(array_to_string,StringType())
+## def array_to_string(my_list):
+##    return '[' + ','.join([str(elem) for elem in my_list]) + ']'
+## array_to_string_udf = udf(array_to_string,StringType())
 
 results = features.join(selected_newspapers, features['retrieved_citation'] == selected_newspapers['citations'])
-results = results.withColumn('neighboring_words', array_to_string_udf(results["neighboring_words"]))
-results = results.withColumn('neighboring_tags', array_to_string_udf(results["neighboring_tags"]))
+## results = results.withColumn('neighboring_words', array_to_string_udf(results["neighboring_words"]))
+## results = results.withColumn('neighboring_tags', array_to_string_udf(results["neighboring_tags"]))
 
-results.write.format('com.databricks.spark.csv').option('delimiter', '\t').save('newspapers_citations_features.csv')
+results = results.drop('retrieved_citation')
+## results.write.format('com.databricks.spark.csv').option('delimiter', '\t').save('newspapers_citations_features.csv')
+results.write.mode('overwrite').parquet('hdfs:///user/harshdee/newspapers_citations_features.parquet')
+
+
