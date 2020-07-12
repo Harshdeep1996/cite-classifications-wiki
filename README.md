@@ -8,6 +8,8 @@ The dataset contains 29.276 million citations and then a subset is prepared whic
 
 Along with the 2 dataset of citations, 2 frameworks are written to train the citations and get the classification - if the citation is scientific or not. Anyone is open to build models or do experiments using the extracted datasets and improve our results!
 
+Please use the notebook `minimal_dataset_demo.ipynb` to play with the `minimal_dataset.zip` by downloading it from Zenodo (http://doi.org/10.5281/zenodo.3940692).
+
 ## Running the repository
 
 Assuming that Python is already installed (tested with version >= 2.7), the list of dependenices is written in `requirements.txt`, the libraries can be installed using:
