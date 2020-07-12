@@ -2,9 +2,9 @@
 
 **The documentation is written as WIKI in: [DOCUMENTATION](https://github.com/Harshdeep1996/cite-classifications-wiki/wiki)**
 
-A dataset of citations is extracted from English Wikipedia (date: 2018-10-01) which comprises of 29 different templates such as `cite news`, `cite web`. 
+A dataset of citations is extracted from English Wikipedia (date: May 2020) which comprises of 35 different templates such as `cite news`, `cite web`. 
 
-The dataset contains 23.80 million citations and then a subset is prepared which contains citations with identifiers which is 3.14 millions in size. The citations with identifiers dataset only covers the DOI, ISBN, PMC, PMID, ArXIV identifiers. 
+The dataset contains 29.276 million citations and then a subset is prepared which contains citations with identifiers which is 3.92 millions in size. The citations with identifiers dataset only covers the DOI, ISBN, PMC, PMID, ArXIV identifiers. 
 
 Along with the 2 dataset of citations, 2 frameworks are written to train the citations and get the classification - if the citation is scientific or not. Anyone is open to build models or do experiments using the extracted datasets and improve our results!
 
@@ -34,8 +34,8 @@ jupyter notebook
 * `notebooks`: Contains the notebooks which  -- 
    * do analysis against some other similar work (`Sanity_Check_Citations.ipynb`)
    * play with features (`Feature_Data_Analysis.ipynb`)
-   * the hybrid network model which does the classification for the examples and contains all the steps (`citation_network_model_4_labels.ipynb`)
+   * the hybrid network model which does the classification for the examples and contains all the steps (`citation_network_model_3_labels.ipynb`)
    * some of the results and which we get from the lookup -- and the corresponding label we classify them into (`results_predication_lookup.ipynb`)
    * doing post lookup steps such as linking the potential journal labeled citations with their corresponding metadata (`wild_examples_lookup_journal.ipynb`)
-* `scripts`: Contains all the scripts to generate the dataset and features. For each script, a description is given at the top. All the paths to files are currently **dummy** -- so please remember while running these scripts to change them.
+* `scripts`: Contains all the scripts to generate the dataset and features. For each script, a description is given at the top. All the paths to files are currently **absolute paths used to run the script** -- so please remember while running these scripts to change them.
 * `tests`: Some tests to check if the scripts for the data generation do what they are supposed to. Multiple tests would be added in the future to check the whole pipeline.
