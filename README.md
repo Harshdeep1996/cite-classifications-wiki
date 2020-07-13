@@ -1,5 +1,7 @@
 # Wikipedia Citations:A comprehensive dataset of citations with identifiers extracted from English Wikipedia
 
+[![DOI](https://zenodo.org/badge/180121200.svg)](http://doi.org/10.5281/zenodo.3940692)
+
 **The documentation is written as WIKI in: [DOCUMENTATION](https://github.com/Harshdeep1996/cite-classifications-wiki/wiki)**
 
 A dataset of citations is extracted from English Wikipedia (date: May 2020) which comprises of 35 different templates such as `cite news`, `cite web`. 
