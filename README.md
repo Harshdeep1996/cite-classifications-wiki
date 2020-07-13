@@ -1,4 +1,4 @@
-# Large-scale automatic classification of references in Wikipedia.
+# Wikipedia Citations:A comprehensive dataset of citations with identifiers extracted from English Wikipedia
 
 **The documentation is written as WIKI in: [DOCUMENTATION](https://github.com/Harshdeep1996/cite-classifications-wiki/wiki)**
 
