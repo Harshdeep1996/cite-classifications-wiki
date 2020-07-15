@@ -43,3 +43,16 @@ jupyter notebook
    * doing post lookup steps such as linking the potential journal labeled citations with their corresponding metadata (`wild_examples_lookup_journal.ipynb`)
 * `scripts`: Contains all the scripts to generate the dataset and features. For each script, a description is given at the top. All the paths to files are currently **absolute paths used to run the script** -- so please remember while running these scripts to change them.
 * `tests`: Some tests to check if the scripts for the data generation do what they are supposed to. Multiple tests would be added in the future to check the whole pipeline.
+
+## How to cite
+
+```
+@misc{singh2020wikipedia,
+    title={Wikipedia Citations: A comprehensive dataset of citations with identifiers extracted from English Wikipedia},
+    author={Harshdeep Singh and Robert West and Giovanni Colavizza},
+    year={2020},
+    eprint={2007.07022},
+    archivePrefix={arXiv},
+    primaryClass={cs.DL}
+}
+```
