@@ -62,7 +62,7 @@ protobuf==3.7.1
 ptyprocess==0.6.0
 py4j==0.10.7
 pyarrow==0.13.0
-Pygments==2.4.0
+Pygments==2.7.4
 pyparsing==2.4.0
 pyrsistent==0.15.2
 pyspark==2.4.3
