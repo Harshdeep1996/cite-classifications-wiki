@@ -80,7 +80,7 @@ sklearn==0.0
 spacy==2.1.4
 srsly==0.0.5
 tensorboard==1.13.1
-tensorflow==1.13.1
+tensorflow==2.9.3
 tensorflow-estimator==1.13.0
 termcolor==1.1.0
 terminado==0.8.2
